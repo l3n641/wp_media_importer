@@ -38,7 +38,7 @@ func PathExists(path string) (bool, error) {
 
 // wp media import ./benetton-2022-08-03/*.*  --allow-root --path=/www/wwwroot/www.vova.show/
 
-func importMedia(ch chan string, webRootPath string, wg *sync.WaitGroup) {
+func importMedia(ch chan string, lock chan int, webRootPath string, wg *sync.WaitGroup) {
 	for val := range ch {
 		//wp media import ./benetton-2022-08-03/*.*  --allow-root --path=/www/wwwroot/www.vova.show/
 		path := "--path=" + webRootPath
@@ -49,5 +49,7 @@ func importMedia(ch chan string, webRootPath string, wg *sync.WaitGroup) {
 		}
 		log.Printf("output: %s", data)
 		wg.Done()
+		<-lock
+
 	}
 }

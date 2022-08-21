@@ -21,10 +21,11 @@ func main() {
 	// StringVar用指定的名称、控制台参数项目、默认值、使用信息注册一个string类型flag，并将flag的值保存到p指向的变量
 	flag.StringVar(&imageDirPath, "i", "", "图片目录路径")
 	flag.StringVar(&webRootPath, "w", "", "网站源码根目录")
-	flag.IntVar(&coroutineQuantity, "q", 8, "网站源码根目录")
+	flag.IntVar(&coroutineQuantity, "q", 2, "网站源码根目录")
 	flag.Parse()
 
 	tasks := make(chan string, coroutineQuantity)
+	lock := make(chan int, coroutineQuantity)
 	imageDirPath = strings.TrimSpace(imageDirPath)
 	if imageDirPath == "" || !IsDir(imageDirPath) {
 		panic("图片路径不能为空或者不存在")
@@ -53,7 +54,9 @@ func main() {
 		filePath := path.Join(imageDirPath, file.Name())
 		images = append(images, filePath)
 		tasks <- filePath
-		go importMedia(tasks, webRootPath, &wg)
+		lock <- 1
+		go importMedia(tasks, lock, webRootPath, &wg)
+
 	}
 	close(tasks)
 	wg.Wait()
